@@ -811,7 +811,7 @@ async def start_tiktok_connection(username: str) -> tuple[bool, str]:
             state["tiktok_status"] = "error"
             state["tiktok_detail"] = "Library TikTokLive belum siap."
             state["tiktok_last_error"] = f"{exc.__class__.__name__}: {exc}"
-        return False, "Library TikTokLive belum terpasang. Di Termux jalankan: python -m pip install -r requirements.txt"
+        return False, f"Gagal memuat TikTokLive: {exc.__class__.__name__}: {exc}"
 
     try:
         client = TikTokLiveClient(unique_id=username)
