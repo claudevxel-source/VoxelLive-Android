@@ -1,11 +1,30 @@
-plugins { id 'com.android.application'; id 'com.chaquo.python' }
+plugins {
+    id 'com.android.application'
+    id 'com.chaquo.python'
+}
+
 android {
     namespace 'com.voxellive.android'
     compileSdk 35
-    defaultConfig { applicationId 'com.voxellive.android'; minSdk 24; targetSdk 35; versionCode 1; versionName '2.0.1-alpha1' }
-    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+
+    defaultConfig {
+        applicationId 'com.voxellive.android'
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName '2.0.1-alpha1'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
 }
+
 python {
     version '3.11'
-    pip { install '-r', 'src/main/python/requirements.txt' }
+
+    pip {
+        install "-r", "src/main/python/requirements.txt"
+    }
 }
