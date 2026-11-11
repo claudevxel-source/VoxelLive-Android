@@ -19,18 +19,45 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
 
+      - name: Locate Android SDK
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+
+          echo "Android SDK: $SDK_ROOT"
+
+          if [ ! -d "$SDK_ROOT" ]; then
+            echo "ERROR: Android SDK directory tidak ditemukan!"
+            exit 1
+          fi
+
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+
+          SDKMANAGER=$(find "$SDK_ROOT/cmdline-tools" \
+            -type f -name sdkmanager 2>/dev/null | head -n 1)
+
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager tidak ditemukan!"
+            exit 1
+          fi
+
+          echo "SDKMANAGER=$SDKMANAGER" >> "$GITHUB_ENV"
+          echo "SDK manager ditemukan: $SDKMANAGER"
+
       - name: Install Android SDK packages
+        shell: bash
         run: |
           echo "Accepting Android SDK licenses..."
-          yes | sdkmanager --licenses || true
+          yes | "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --licenses || true
 
-          echo "Installing Android SDK..."
-          sdkmanager --install \
+          echo "Installing Android SDK packages..."
+          "$SDKMANAGER" --sdk_root="$ANDROID_HOME" --install \
             "platform-tools" \
             "platforms;android-35" \
             "build-tools;35.0.0"
@@ -41,19 +68,34 @@ jobs:
           gradle-version: '8.7'
 
       - name: Check project files
+        shell: bash
         run: |
           test -f settings.gradle
           test -f build.gradle
           test -f app/build.gradle
           test -f app/src/main/AndroidManifest.xml
+          test -f app/src/main/java/com/voxellive/android/MainActivity.java
+          test -f app/src/main/java/com/voxellive/android/VoxelLiveService.java
+
+          echo "Semua file utama ditemukan."
 
       - name: Build VoxelLive APK
+        shell: bash
         run: |
           gradle --no-daemon clean assembleDebug
 
       - name: Verify APK
+        shell: bash
         run: |
-          find app/build/outputs/apk -type f -name "*.apk"
+          APK=$(find app/build/outputs/apk/debug \
+            -type f -name "*.apk" | head -n 1)
+
+          if [ -z "$APK" ]; then
+            echo "ERROR: APK tidak berhasil dibuat!"
+            exit 1
+          fi
+
+          echo "APK berhasil ditemukan: $APK"
 
       - name: Upload VoxelLive APK
         uses: actions/upload-artifact@v4
