@@ -1,2 +1,3 @@
 websockets>=14,<16
 TikTokLive==7.0.1
+pydantic
